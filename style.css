@@ -1,6 +1,35 @@
-.text-gradient-animation {
-    background-size: 200% auto;
-    animation: gradient-flow 3s ease-in-out infinite;
+/* ---------- Base ---------- */
+
+html {
+    /* Keeps anchor targets clear of the fixed nav bar (replaces the old JS scroll offset). */
+    scroll-padding-top: 80px;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+.main-content {
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(135deg, rgba(2, 6, 23, 1) 0%, rgba(79, 70, 229, 0.05) 50%, rgba(2, 6, 23, 1) 100%);
+}
+
+.full-screen-section {
+    min-height: calc(100vh - 4rem);
+    padding-top: 4rem;
+    display: flex;
+    align-items: center;
+}
+
+#three-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
 }
 
 @keyframes gradient-flow {
@@ -9,20 +38,55 @@
     100% { background-position: 0% 50%; }
 }
 
-body {
-    font-family: 'Inter', sans-serif;
-    overflow-x: hidden;
+.text-gradient-animation {
+    background-size: 200% auto;
+    animation: gradient-flow 3s ease-in-out infinite;
 }
 
-.full-screen-section {
-    min-height: calc(100vh - 4rem); 
-    padding-top: 4rem;
+/* ---------- Hero ---------- */
+
+.profile-border-container {
+    width: min(20.5rem, 80vw);
+    aspect-ratio: 1;
+    border-radius: 50%;
     display: flex;
-    align-items: center; 
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to right, #f472b6, #22d3ee);
+    background-size: 200% auto;
+    animation: gradient-flow 3s ease-in-out infinite;
+    margin: 0 auto 2rem;
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-container {
+    width: calc(100% - 0.5rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #020617;
+}
+
+.profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.cursor {
+    display: inline-block;
+    animation: blink 0.75s infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
 }
 
 .glitter-particle {
-    position: absolute;
+    position: fixed;
     background-color: #ffffff;
     opacity: 0;
     border-radius: 50%;
@@ -43,115 +107,61 @@ body {
     }
 }
 
-.cursor {
-    display: inline-block;
-    animation: blink 0.75s infinite;
-}
-
-@keyframes blink {
-    50% { opacity: 0; }
-}
-
-#three-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: -1;
-}
-
-.main-content {
-    position: relative;
-    z-index: 1;
-    background: linear-gradient(135deg, rgba(2, 6, 23, 1) 0%, rgba(79, 70, 229, 0.05) 50%, rgba(2, 6, 23, 1) 100%);
-}
-.profile-border-container {
-    width: 20.5rem; 
-    height: 20.5rem;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(to right, #f472b6, #22d3eeff);
-    background-size: 200% auto;
-    animation: gradient-flow 3s ease-in-out infinite;
-    margin: 0 auto 2rem;
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.5); 
-    position: relative;
-    overflow: hidden; 
-}
-
-.profile-container {
-    width: 20rem; 
-    height: 20rem;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    background-color: #020617; 
-}
-
-.profile-image {
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover; 
-    border-radius: 50%;
-}
-
-.skill-item {
-    border: 1px solid #224b84ff; 
-    background-color: rgba(15, 23, 42, 0.4); 
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease-in-out;
-}
-
-.skill-item:hover {
-    border-color: #60a5fa; 
-    box-shadow: 0 0 15px rgba(96, 165, 250, 0.6); 
-    transform: translateY(-5px); 
-    background-color: rgba(30, 41, 59, 0.8);
-}
-
-.animate-in {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-}
+/* ---------- About: ID badge ---------- */
 
 .id-badge-container {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
+    max-width: 100%;
     animation: gentle-swing 4s ease-in-out infinite alternate;
     cursor: grab;
-    transition: transform 0.3s ease-out; 
 }
 
 .id-badge-container:hover,
 .id-badge-container:active {
-    animation-play-state: paused; 
-    transform: rotateZ(-8deg) translateY(-5px); 
+    animation-play-state: paused;
     cursor: grabbing;
 }
 
-.id-card {
-    width: 17rem; 
-    background: #0f172a; 
-    border-radius: 1.5rem; 
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(71, 85, 105, 0.5); 
-    transform: rotateZ(3deg);
-    transition: transform 0.3s ease-out; 
+@keyframes gentle-swing {
+    0% { transform: rotate(3deg); }
+    100% { transform: rotate(-3deg); }
 }
+
+.lanyard {
+    width: 6px;
+    height: 100px;
+    background-color: #4f46e5;
+    border-radius: 0 0 3px 3px;
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+    z-index: 5;
+}
+
+.id-card {
+    position: relative;
+    width: 17rem;
+    max-width: 100%;
+    background: #0f172a;
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    transform: rotateZ(3deg);
+    transition: transform 0.3s ease-out;
+}
+
 .id-badge-container:hover .id-card,
 .id-badge-container:active .id-card {
     transform: rotateZ(0deg) scale(1.03);
-    box-shadow: 0 15px 40px rgba(79, 70, 229, 0.5); 
+    box-shadow: 0 15px 40px rgba(79, 70, 229, 0.5);
 }
 
+/* Punch hole at the top of the card. */
 .id-card::before {
     content: '';
     position: absolute;
@@ -165,30 +175,37 @@ body {
     z-index: 10;
 }
 
-.lanyard {
-    width: 6px;
-    height: 100px; 
-    background-color: #4f46e5; 
-    border-radius: 0 0 3px 3px;
-    position: absolute;
-    top: -50px; 
-    left: 50%;
-    transform: translateX(-50%);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
-    z-index: 5;
+/* ---------- Skills ---------- */
+
+.skill-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+    border: 1px solid #224b84;
+    background-color: rgba(15, 23, 42, 0.4);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.7s ease-out, transform 0.5s ease-out,
+                border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
 }
 
-.id-card img {
-    height: 95%;
-    width: 95%;
-    margin: auto;
-    border-radius: 0.5rem;
-    object-fit: cover !important; 
+.skill-item:hover {
+    border-color: #60a5fa;
+    box-shadow: 0 0 15px rgba(96, 165, 250, 0.6);
+    transform: translateY(-5px);
+    background-color: rgba(30, 41, 59, 0.8);
 }
-@keyframes gentle-swing {
-    0% { transform: rotate(3deg); }
-    100% { transform: rotate(-3deg); }
+
+/* Scroll reveal: only hidden when JS is running to reveal it again. */
+.js .skill-item[data-animate-on-scroll]:not(.is-visible) {
+    opacity: 0;
+    transform: translateY(1rem);
 }
+
+/* ---------- Work ---------- */
+
 .project-link-text::after {
     content: '';
     position: absolute;
@@ -196,26 +213,64 @@ body {
     left: 0;
     width: 0%;
     height: 2px;
-    background-color: currentColor; 
+    background-color: currentColor;
     transition: width 0.3s ease-in-out;
 }
 
 .project-link:hover .project-link-text::after {
     width: 100%;
 }
- .social-icon-circle {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
- }
+
 .js-tilt-card {
-    transform-style: preserve-3d;
-    perspective: 1000px; 
-    transition: transform 0.5s ease-out, box-shadow 0.5s ease-out; 
+    transition: transform 0.5s ease-out, box-shadow 0.5s ease-out;
 }
-.js-tilt-card * {
-    transform-style: preserve-3d;
+
+/* ---------- Contact & footer ---------- */
+
+.form-field {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #334155;
+    border: 1px solid #475569;
+    border-radius: 0.5rem;
+    color: #fff;
+    transition: box-shadow 0.2s;
+}
+
+.form-field:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #6366f1;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    background-color: rgba(51, 65, 85, 0.3);
+    border: 2px solid transparent;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+}
+
+.social-link:hover {
+    background-color: rgba(51, 65, 85, 0.5);
+    border-color: #22d3ee;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- Accessibility ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    html {
+        scroll-behavior: auto !important;
+    }
 }

@@ -1,276 +1,243 @@
-document.addEventListener('DOMContentLoaded', () => {
-  
+// Loaded with `defer`, so the DOM is parsed and THREE is available when this runs.
+
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+// Highlights the nav item of whichever section crosses a line ~40% down the viewport.
+function initNavHighlight() {
     const navItems = document.querySelectorAll('.nav-item');
-    const sections = document.querySelectorAll('section');
+    const sections = document.querySelectorAll('main > section[id]');
+    const ACTIVE = ['bg-indigo-600', 'text-white', 'shadow-xl'];
+    const INACTIVE = ['text-slate-400', 'hover:text-white', 'hover:bg-slate-700/50'];
 
     function setActiveNavItem(targetId) {
-        navItems.forEach(navItem => {
-            navItem.classList.remove('bg-indigo-600', 'text-white', 'shadow-xl');
-            navItem.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-slate-700/50');
-        });
-        
-        const activeItem = document.querySelector(`[data-target="${targetId}"]`);
-        if (activeItem) {
-            activeItem.classList.remove('text-slate-400', 'hover:text-white', 'hover:bg-slate-700/50');
-            activeItem.classList.add('bg-indigo-600', 'text-white', 'shadow-xl');
-        }
-    }
-
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault(); 
-            const targetId = item.getAttribute('data-target');
-            const targetSection = document.getElementById(targetId);
-            
-            if (targetSection) {
-                const offset = 80; 
-                const offsetPosition = targetSection.offsetTop - offset;
-
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: 'smooth'
-                });
+        navItems.forEach(item => {
+            const isActive = item.dataset.target === targetId;
+            item.classList.remove(...(isActive ? INACTIVE : ACTIVE));
+            item.classList.add(...(isActive ? ACTIVE : INACTIVE));
+            if (isActive) {
+                item.setAttribute('aria-current', 'true');
+            } else {
+                item.removeAttribute('aria-current');
             }
         });
-    });
+    }
 
     const observer = new IntersectionObserver(entries => {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                setActiveNavItem(entry.target.id);
-            }
+            if (entry.isIntersecting) setActiveNavItem(entry.target.id);
         });
-    }, {
-        rootMargin: "0px 0px -70% 0px", 
-        threshold: 0.1
-    });
+    }, { rootMargin: '-40% 0px -59% 0px' });
 
-    sections.forEach(section => {
-        observer.observe(section);
-    });
-    const titleContainer = document.getElementById('animated-title-container');
-    const words = ["UI/UX Designer", "Front-end Developer", "Creative Problem Solver"]; 
+    sections.forEach(section => observer.observe(section));
+}
+
+function initTypewriter() {
+    const target = document.getElementById('animated-title');
+    if (!target) return;
+
+    const words = ['UI/UX Designer', 'Front-end Developer', 'Creative Problem Solver'];
+
+    if (prefersReducedMotion) {
+        target.textContent = words[0];
+        return;
+    }
+
     let wordIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
 
-    function typeWriter() {
-        if (!titleContainer) return; 
-
+    function tick() {
         const fullWord = words[wordIndex];
-        
-        if (isDeleting) {
-            charIndex--;
-        } else {
-            charIndex++;
-        }
+        charIndex += isDeleting ? -1 : 1;
+        target.textContent = fullWord.substring(0, charIndex);
 
-        const currentWord = fullWord.substring(0, charIndex);
-        titleContainer.innerHTML = currentWord;
-        
-        const cursor = document.createElement('span');
-        cursor.className = 'cursor';
-        cursor.textContent = '|'; 
-        titleContainer.appendChild(cursor);
-
-        let typingSpeed = 100; 
-        
-        if (isDeleting) {
-            typingSpeed = 50; 
-        }
-
-        if (!isDeleting && currentWord.length === fullWord.length) {
-            typingSpeed = 1500; 
+        let delay = isDeleting ? 50 : 100;
+        if (!isDeleting && charIndex === fullWord.length) {
+            delay = 1500;
             isDeleting = true;
-        } else if (isDeleting && currentWord === '') {
+        } else if (isDeleting && charIndex === 0) {
             isDeleting = false;
-            wordIndex = (wordIndex + 1) % words.length; 
-            typingSpeed = 500; 
+            wordIndex = (wordIndex + 1) % words.length;
+            delay = 500;
         }
-        setTimeout(typeWriter, typingSpeed);
+        setTimeout(tick, delay);
     }
 
-    setTimeout(typeWriter, 500);
-    document.addEventListener('mousemove', (e) => {
-        const particle = document.createElement('div');
-        particle.className = 'glitter-particle';
-        
-        particle.style.left = `${e.clientX}px`;
-        particle.style.top = `${e.clientY}px`;
-        
-        const size = Math.random() * 5 + 2; 
-        particle.style.width = `${size}px`;
-        particle.style.height = `${size}px`;
+    setTimeout(tick, 500);
+}
 
-        document.body.appendChild(particle);
+// Sparkle trail behind the mouse cursor, capped at one particle per animation frame.
+function initCursorGlitter() {
+    if (!canHover || prefersReducedMotion) return;
 
-        setTimeout(() => {
-            particle.remove();
-        }, 1500); 
-    });
+    let pending = null;
 
-    const skillItems = document.querySelectorAll('[data-animate-on-scroll]');
-    
-    const skillObserver = new IntersectionObserver(entries => {
+    document.addEventListener('mousemove', e => {
+        if (pending) return;
+        pending = requestAnimationFrame(() => {
+            pending = null;
+            const particle = document.createElement('div');
+            const size = Math.random() * 5 + 2;
+            particle.className = 'glitter-particle';
+            particle.style.left = `${e.clientX}px`;
+            particle.style.top = `${e.clientY}px`;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.addEventListener('animationend', () => particle.remove(), { once: true });
+            document.body.appendChild(particle);
+        });
+    }, { passive: true });
+}
+
+function initSkillReveal() {
+    const items = document.querySelectorAll('[data-animate-on-scroll]');
+
+    const observer = new IntersectionObserver(entries => {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const item = entry.target;
-                const delay = parseInt(item.getAttribute('data-delay') || '0', 10);
-                
-                setTimeout(() => {
-                    item.classList.add('animate-in'); 
-                }, delay);
-                skillObserver.unobserve(item); 
-            }
+            if (!entry.isIntersecting) return;
+            const item = entry.target;
+            const delay = Number(item.dataset.delay) || 0;
+            setTimeout(() => item.classList.add('is-visible'), delay);
+            observer.unobserve(item);
         });
-    }, {
-        rootMargin: "0px 0px -100px 0px", 
-        threshold: 0.1
-    });
+    }, { rootMargin: '0px 0px -100px 0px', threshold: 0.1 });
 
-    skillItems.forEach(item => {
-        skillObserver.observe(item);
-    });
-    
-    const tiltCards = document.querySelectorAll('.js-tilt-card');
-    const MAX_TILT = 6; 
-    const SCALE_AMOUNT = 1.05; 
+    items.forEach(item => observer.observe(item));
+}
 
-    tiltCards.forEach(card => {
-        let isHovering = false;
-        
-        card.addEventListener('mousemove', (e) => {
-            if (!isHovering) return;
-            handleMouseMove(card, e);
-        });
+function initTiltCards() {
+    if (!canHover || prefersReducedMotion) return;
 
+    const MAX_TILT = 6;
+    const SCALE = 1.05;
+
+    document.querySelectorAll('.js-tilt-card').forEach(card => {
         card.addEventListener('mouseenter', () => {
-            isHovering = true;
-            card.style.transform = `scale(${SCALE_AMOUNT})`;
-            card.style.transition = 'transform 0.1s ease-out'; 
+            card.style.transition = 'transform 0.1s ease-out, box-shadow 0.5s ease-out';
+            card.style.transform = `scale(${SCALE})`;
+        });
+
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width * 2 - 1;  // -1 .. 1
+            const y = (e.clientY - rect.top) / rect.height * 2 - 1;
+            card.style.transition = 'box-shadow 0.5s ease-out';
+            card.style.transform =
+                `perspective(1000px) rotateX(${-y * MAX_TILT}deg) rotateY(${x * MAX_TILT}deg) scale(${SCALE})`;
         });
 
         card.addEventListener('mouseleave', () => {
-            isHovering = false;
-            card.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
-            card.style.transition = 'transform 0.5s ease-out, box-shadow 0.5s ease-out'; 
+            card.style.transition = 'transform 0.5s ease-out, box-shadow 0.5s ease-out';
+            card.style.transform = '';
         });
-
-        function handleMouseMove(cardElement, event) {
-            const rect = cardElement.getBoundingClientRect();
-            const xCenter = rect.left + rect.width / 2;
-            const yCenter = rect.top + rect.height / 2;
-            const mouseX = event.clientX;
-            const mouseY = event.clientY;
-            const xNormalized = (mouseX - xCenter) / (rect.width / 2);
-            const yNormalized = (mouseY - yCenter) / (rect.height / 2);
-            const rotationX = yNormalized * -MAX_TILT; 
-            const rotationY = xNormalized * MAX_TILT;
-            cardElement.style.transform = 
-                `perspective(1000px) rotateX(${rotationX}deg) rotateY(${rotationY}deg) scale(${SCALE_AMOUNT})`;
-            
-            cardElement.style.transition = 'none'; 
-        }
     });
+}
 
-});
-
-window.onload = function() {
+// Drifting particle network behind the page.
+function initBackground() {
     const canvas = document.getElementById('three-canvas');
-    if (!canvas || typeof THREE === 'undefined') return; 
+    if (!canvas || typeof THREE === 'undefined') return;
+
+    const PARTICLE_COUNT = 200;
+    const BOX = 300;
+    const HALF = BOX / 2;
+    const MAX_DIST_SQ = 60 * 60;
+    const MAX_SEGMENTS = PARTICLE_COUNT * (PARTICLE_COUNT - 1) / 2;
+    const COLOR = new THREE.Color(0x00ccff);
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-    
+    camera.position.z = 200;
+
+    let renderer;
+    try {
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    } catch (err) {
+        console.warn('WebGL unavailable; skipping background animation.', err);
+        return;
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x000000, 0); 
+    renderer.setClearColor(0x000000, 0);
 
-    const particleCount = 200; 
-
-    const particleMaterial = new THREE.PointsMaterial({
-        color: 0x00ccff, 
-        size: 2, 
-        blending: THREE.AdditiveBlending, 
-        transparent: true,
-        sizeAttenuation: true 
-    });
-    const lineMaterial = new THREE.LineBasicMaterial({
-        color: 0x00ccff,
-        transparent: true,
-        opacity: 0.2
-    });
-
-    const geometry = new THREE.BufferGeometry();
-    const positions = [];
-    const particlesData = [];
-    const boundingBox = 300; 
-
-    for (let i = 0; i < particleCount; i++) {
-        const x = (Math.random() - 0.5) * boundingBox;
-        const y = (Math.random() - 0.5) * boundingBox;
-        const z = (Math.random() - 0.5) * boundingBox;
-        positions.push(x, y, z);
-        
-        particlesData.push({
-            velocity: new THREE.Vector3((Math.random() - 0.5) * 0.1, (Math.random() - 0.5) * 0.1, (Math.random() - 0.5) * 0.1)
-        });
+    const positions = new Float32Array(PARTICLE_COUNT * 3);
+    const velocities = new Float32Array(PARTICLE_COUNT * 3);
+    for (let i = 0; i < positions.length; i++) {
+        positions[i] = (Math.random() - 0.5) * BOX;
+        velocities[i] = (Math.random() - 0.5) * 0.1;
     }
 
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    const pointGeometry = new THREE.BufferGeometry();
+    pointGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    scene.add(new THREE.Points(pointGeometry, new THREE.PointsMaterial({
+        color: COLOR,
+        size: 2,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        sizeAttenuation: true,
+    })));
 
-    const particles = new THREE.Points(geometry, particleMaterial);
-    scene.add(particles);
-
+    // Line buffers are allocated once at their maximum size; setDrawRange limits what is drawn.
+    // Each segment's brightness fades with distance via vertex colours (additive on a dark background).
+    const linePositions = new Float32Array(MAX_SEGMENTS * 6);
+    const lineColors = new Float32Array(MAX_SEGMENTS * 6);
     const lineGeometry = new THREE.BufferGeometry();
-    const lines = new THREE.LineSegments(lineGeometry, lineMaterial);
-    scene.add(lines);
-    const linePositions = [];
+    lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions, 3).setUsage(THREE.DynamicDrawUsage));
+    lineGeometry.setAttribute('color', new THREE.BufferAttribute(lineColors, 3).setUsage(THREE.DynamicDrawUsage));
+    scene.add(new THREE.LineSegments(lineGeometry, new THREE.LineBasicMaterial({
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+    })));
 
-    camera.position.z = 200;
-    const maxDistance = 60; 
+    function wrap(v) {
+        if (v > HALF) return -HALF;
+        if (v < -HALF) return HALF;
+        return v;
+    }
 
-    function animate() {
-        requestAnimationFrame(animate);
+    function writeVertex(offset, particle, alpha) {
+        linePositions[offset] = positions[particle];
+        linePositions[offset + 1] = positions[particle + 1];
+        linePositions[offset + 2] = positions[particle + 2];
+        lineColors[offset] = COLOR.r * alpha;
+        lineColors[offset + 1] = COLOR.g * alpha;
+        lineColors[offset + 2] = COLOR.b * alpha;
+    }
 
-        const positionsArray = geometry.attributes.position.array;
-        
-        linePositions.length = 0;
+    function step() {
+        for (let i = 0; i < positions.length; i++) {
+            positions[i] = wrap(positions[i] + velocities[i]);
+        }
 
-        for (let i = 0; i < particleCount; i++) {
-            positionsArray[i * 3] += particlesData[i].velocity.x;
-            positionsArray[i * 3 + 1] += particlesData[i].velocity.y;
-            positionsArray[i * 3 + 2] += particlesData[i].velocity.z;
+        let v = 0;
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            const ia = i * 3;
+            for (let j = i + 1; j < PARTICLE_COUNT; j++) {
+                const ja = j * 3;
+                const dx = positions[ia] - positions[ja];
+                const dy = positions[ia + 1] - positions[ja + 1];
+                const dz = positions[ia + 2] - positions[ja + 2];
+                const distSq = dx * dx + dy * dy + dz * dz;
+                if (distSq >= MAX_DIST_SQ) continue;
 
-            if (positionsArray[i * 3] > boundingBox / 2) positionsArray[i * 3] = -boundingBox / 2;
-            if (positionsArray[i * 3] < -boundingBox / 2) positionsArray[i * 3] = boundingBox / 2;
-            if (positionsArray[i * 3 + 1] > boundingBox / 2) positionsArray[i * 3 + 1] = -boundingBox / 2;
-            if (positionsArray[i * 3 + 1] < -boundingBox / 2) positionsArray[i * 3 + 1] = boundingBox / 2;
-            if (positionsArray[i * 3 + 2] > boundingBox / 2) positionsArray[i * 3 + 2] = -boundingBox / 2;
-            if (positionsArray[i * 3 + 2] < -boundingBox / 2) positionsArray[i * 3 + 2] = boundingBox / 2;
-
-            for (let j = i + 1; j < particleCount; j++) {
-                const dx = positionsArray[i * 3] - positionsArray[j * 3];
-                const dy = positionsArray[i * 3 + 1] - positionsArray[j * 3 + 1];
-                const dz = positionsArray[i * 3 + 2] - positionsArray[j * 3 + 2];
-                const distanceSq = dx * dx + dy * dy + dz * dz;
-
-                if (distanceSq < maxDistance * maxDistance) {
-                    const opacity = 1 - (distanceSq / (maxDistance * maxDistance)); 
-                    lineMaterial.opacity = opacity * 0.3; 
-                    
-                    linePositions.push(positionsArray[i * 3], positionsArray[i * 3 + 1], positionsArray[i * 3 + 2]);
-                    linePositions.push(positionsArray[j * 3], positionsArray[j * 3 + 1], positionsArray[j * 3 + 2]);
-                }
+                const alpha = (1 - distSq / MAX_DIST_SQ) * 0.3;
+                writeVertex(v, ia, alpha);
+                writeVertex(v + 3, ja, alpha);
+                v += 6;
             }
         }
-        
-        geometry.attributes.position.needsUpdate = true; 
-        lines.geometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-        lines.geometry.attributes.position.needsUpdate = true; 
 
+        pointGeometry.attributes.position.needsUpdate = true;
+        lineGeometry.attributes.position.needsUpdate = true;
+        lineGeometry.attributes.color.needsUpdate = true;
+        lineGeometry.setDrawRange(0, v / 3);
+    }
+
+    function render() {
+        step();
         scene.rotation.y += 0.0005;
-
         renderer.render(scene, camera);
     }
 
@@ -278,7 +245,25 @@ window.onload = function() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        if (prefersReducedMotion) renderer.render(scene, camera);
     });
 
-    animate();
-};
+    if (prefersReducedMotion) {
+        render(); // single static frame
+    } else {
+        renderer.setAnimationLoop(render);
+    }
+}
+
+function initCopyrightYear() {
+    const el = document.getElementById('copyright-year');
+    if (el) el.textContent = new Date().getFullYear();
+}
+
+initNavHighlight();
+initTypewriter();
+initCursorGlitter();
+initSkillReveal();
+initTiltCards();
+initBackground();
+initCopyrightYear();

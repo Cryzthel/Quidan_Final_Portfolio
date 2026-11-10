@@ -13,7 +13,8 @@ Compatible with all mobile devices and with a beautiful and pleasant user interf
 - `index.html` - Main HTML file containing the website structure
 - `style.css` - CSS file containing all the styling for the website
 - `index.js` - JavaScript file containing website functionality
-- `images/` - Directory containing all images used in the website
+- `images/` - Optimized WebP images (`profile`, `id-photo`, `project-*`, `skill-*`, `social-*`)
+- `files/` - Downloadable files (resume PDF)
 
 ## Features
 
@@ -31,6 +32,14 @@ Compatible with all mobile devices and with a beautiful and pleasant user interf
 ## How to Run
 
 Simply open the `index.html` file in a web browser to view the website.
+
+For the closest match to the deployed site, serve the folder locally instead:
+
+```bash
+python -m http.server 8080
+```
+
+then visit http://localhost:8080.
 
 ## Author
 
